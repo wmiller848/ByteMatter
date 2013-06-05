@@ -15,16 +15,13 @@ var ByteMatter = function()
 {
     var self = this;
 
-    self.root = null;
     self.data =
     {
         points  : [],
         normals : [],
         colors : [],
-        averageColor : vec4.create(),
         bounds : new Array(6)
     };
-
 
     self.instance =
     {
@@ -33,14 +30,10 @@ var ByteMatter = function()
     };
     mat4.translate(self.instance.mat, [self.instance.pos[0], self.instance.pos[1], self.instance.pos[2]]);
 
-    self.children = [];
-
-    self.childrenCompressed = false;
-
     self.ready = false;
 };
 
-ByteMatter.prototype.create = function(modelJSON, root, callback)
+ByteMatter.prototype.create = function(modelJSON, callback)
 {
     // This is an expermental way of rendering geometry, based off a sudo "pre-rastering" of triangles
     // and optimized octree's
@@ -48,7 +41,6 @@ ByteMatter.prototype.create = function(modelJSON, root, callback)
     // we then sample the shape at some octree resolution to get the need pixel color and position values
 
     var self = this;
-    self.root = root;
 
     console.log("Creating ByteMatter");
 
@@ -67,7 +59,7 @@ ByteMatter.prototype.create = function(modelJSON, root, callback)
     var models = modelJSON.mModels;
     var points = [];
     var colors = [];
-    var defaultColor = [175/255, 157/255, 175/255, 1.0];
+    var defaultColor = ["#FFFFFF", 1.0];
 
     for(var j = 0; j < models.length; j++)
     {
@@ -79,6 +71,7 @@ ByteMatter.prototype.create = function(modelJSON, root, callback)
         {
             var v0 = vec3.create([verts[i+0], -verts[i+1], verts[i+2]]);
             points.push(vec3.create(v0));
+            colors.push(vec2.create(defaultColor));
             /*
             var v0 = vec3.create([verts[indices[i+0]], verts[indices[i+1]], verts[indices[i+2]]]);
             var v1 = vec3.create([verts[indices[i+3]], verts[indices[i+4]], verts[indices[i+5]]]);
@@ -165,13 +158,15 @@ ByteMatter.prototype.create = function(modelJSON, root, callback)
     function validateCreate()
     {
         console.log(self);
-        console.log("Octree Created");
+        console.log("ByteMatter Created");
         if(callback)
             callback();
     }
 
     self._create(points, colors, [min[0],min[1],min[2],max[0],max[1],max[2]]);
     self.ready = true;
+
+    validateCreate();
 };
 
 ByteMatter.prototype._create = function(points, colors, packedBounds)
@@ -224,35 +219,6 @@ ByteMatter.prototype._create = function(points, colors, packedBounds)
         }
     }
     console.log("Checked all points");
-    /*
-
-    self.children = [];
-    self.childrenCompressed = false;
-
-    self.children[0] = new ByteMatter();
-    self.children[0]._create(subPoints);
-
-    self.children[1] = new ByteMatter();
-    self.children[1]._create(subPoints);
-
-    self.children[2] = new ByteMatter();
-    self.children[2]._create(subPoints);
-
-    self.children[3] = new ByteMatter();
-    self.children[3]._create(subPoints);
-
-    self.children[4] = new ByteMatter();
-    self.children[4]._create(subPoints);
-
-    self.children[5] = new ByteMatter();
-    self.children[5]._create(subPoints);
-
-    self.children[6] = new ByteMatter();
-    self.children[6]._create(subPoints);
-
-    self.children[7] = new ByteMatter();
-    self.children[7]._create(subPoints);
-    */
 };
 
 ByteMatter.prototype.unpackBounds = function(packedBounds)
@@ -301,13 +267,17 @@ ByteMatter.prototype.unpackBounds = function(packedBounds)
     return bounds;
 };
 
+ByteMatter.prototype.unpackColor = function(hex)
+{
+    function cleanHex(h) {(h.charAt(0)=="#") ? h.substring(1,7):h}
+    var color = [parseInt((cleanHex(hex)).substring(0,2),16), parseInt((cleanHex(hex)).substring(2,4),16), parseInt((cleanHex(hex)).substring(4,6),16)];
+    return  color;
+};
+
 ByteMatter.prototype.devide = function()
 {
     var self = this;
     var bounds = self.unpackBounds(self.data.bounds);
-
-
-
 };
 
 ByteMatter.prototype.partition = function(array, begin, end, pivot, index)
@@ -368,7 +338,7 @@ ByteMatter.prototype.render = function(timing, frustum, mats, context, callback)
     }
     */
 
-    function renderPoints(points)
+    function renderPoints(points, colors)
     {
         var modelView = mat4.create(mats.viewMat);
         mat4.multiply(modelView, instance.mat, modelView);
@@ -398,13 +368,13 @@ ByteMatter.prototype.render = function(timing, frustum, mats, context, callback)
             if(inView == true)
             {
                 var p0 = vec2.create();
-                var view = mat4.project(modelView, mats.projMat, [0,0,ctxWidth,ctxHeight], p0, v0);
+                var view = mat4.project(v0, modelView, mats.projMat, [0,0,ctxWidth,ctxHeight], p0);
 
                 if(view == 1)
                 {
                     context.fillStyle = 'black';
-                    //context.fillRect(p0[0]-2, p0[1]-2, 4, 4);
-                    context.fillRect(p0[0], p0[1], 1, 1);
+                    context.fillRect(p0[0]-2, p0[1]-2, 4, 4);
+                    //context.fillRect(p0[0], p0[1], 1, 1);
                 }
             }
         }
@@ -413,20 +383,25 @@ ByteMatter.prototype.render = function(timing, frustum, mats, context, callback)
     }
 
     var flatPoints = [];
+    var flatColors = [];
     var cloudPoints = self.data.points;
+    var cloudColors = self.data.colors;
     for(var i = 0; i < cloudPoints.length; i+=6)
     {
         var point = cloudPoints[i];
         flatPoints.push(point[0]);
         flatPoints.push(point[1]);
         flatPoints.push(point[2]);
+
+
+        flatColors.push()
     }
 
     var test =
     [
         0.0, 0.0, 0.0
     ];
-    //renderPoints(test);
+    renderPoints(test, [1, 1, 1, 1]);
     //renderPoints(self.unpackBounds([-1,-1,-1, 1,1,1]));
-    renderPoints(flatPoints);
+    renderPoints(flatPoints, flatColors);
 };

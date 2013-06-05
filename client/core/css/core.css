@@ -9,3 +9,7 @@ canvas {
 .frame {
     text-align: center;
 }
+
+.dev-bar {
+    /*position: absolute;*/
+}

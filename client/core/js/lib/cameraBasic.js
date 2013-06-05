@@ -42,18 +42,57 @@ Camera.prototype.init = function(context)
         if(self.shift) {self.shift = false;}
     }, false);
 
-    context.addEventListener('mousedown',function(event)
+
+    function getTouchPosition(touch, frameElement)
     {
-        if(event.which === 1)
+        var x;
+        var y;
+        if (touch.pageX || touch.pageY) {
+            x = touch.pageX;
+            y = touch.pageY;
+        } else {
+            x = touch.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+            y = touch.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+
+        var el = frameElement;
+        while (el) {
+            x -= el.offsetLeft;
+            y -= el.offsetTop;
+            el = el.offsetParent;
+        }
+
+        var pos = vec2.createFloat(x, y);
+        return pos;
+    }
+
+    function start(event)
+    {
+        event.preventDefault();
+        //if(event.which === 1)
         {
             self.moving = true;
         }
         lastX = event.pageX;
         lastY = event.pageY;
+    }
+    context.addEventListener('mousedown', start, false);
+    context.addEventListener('touchstart', function(event) {
+        event.preventDefault();
+        var touch = event.changedTouches[0];
+        var touchPos = getTouchPosition(touch, context);
+
+        //if(event.which === 1)
+        {
+            self.moving = true;
+        }
+        lastX = touchPos[0];
+        lastY = touchPos[1];
     }, false);
 
-    context.addEventListener('mousemove',function(event)
+    function move(event)
     {
+        event.preventDefault();
         if(self.moving == true)
         {
             var xDelta = event.pageX-lastX,
@@ -68,21 +107,43 @@ Camera.prototype.init = function(context)
             self.rotation[1] += inc*xDelta;
             self.dirty = true;
         }
-    },false);
+    }
+    context.addEventListener('mousemove', move, false);
+    context.addEventListener('touchmove', function(event){
+        event.preventDefault();
+        var touch = event.changedTouches[0];
+        var touchPos = getTouchPosition(touch, context);
 
-    context.addEventListener('mouseup',function()
+        if(self.moving == true)
+        {
+            var xDelta = touchPos[0]-lastX,
+                yDelta = touchPos[1]-lastY;
+
+            lastX = touchPos[0];
+            lastY = touchPos[1];
+
+            var inc = 1;//-Math.PI/360.0;
+
+            self.rotation[0] += -inc*yDelta;
+            self.rotation[1] += inc*xDelta;
+            self.dirty = true;
+        }
+    }, false);
+
+    function end(event)
     {
+        event.preventDefault();
         self.moving = false;
         self.dirty = true;
-    },false);
+    }
+    document.addEventListener('mouseup', end, false);
+    document.addEventListener('touchend', end, false);
 
-    context.addEventListener('mousewheel',function(event)
-    {
+    context.addEventListener('mousewheel',function(event) {
         event.preventDefault();
     },false);
 
-    context.addEventListener('DOMMouseScroll',function(event)
-    {
+    context.addEventListener('DOMMouseScroll',function(event) {
         event.preventDefault();
     },false);
 };

@@ -17,7 +17,7 @@
 
     <!-- JavaScript-->
     <script type="text/javascript" src="core/js/lib/3rdParty/glMatrix.js"></script>
-    <script type="text/javascript" src="core/js/lib/camera2.js"></script>
+    <script type="text/javascript" src="core/js/lib/cameraBasic.js"></script>
     <script type="text/javascript" src="core/js/lib/ByteMatter.js"></script>
     <!-- Main -->
     <script type="text/javascript" src="core/js/index.js"></script>
@@ -29,11 +29,18 @@
 <body>
 
 <div class="frame">
+
     <div id="">
-        <h1>ByteMatter</h1>
+        <h2>ByteMatter</h2>
     </div>
     <div>
-        <canvas width="900" height="550" id="renderCtx"> </canvas>
+        <div class="dev-bar">
+            <p id="FPS">FPS: !</p>
+        </div>
+
+        <div>
+            <canvas width="900" height="550" id="renderCtx"> </canvas>
+        </div>
     </div>
 </div>
 

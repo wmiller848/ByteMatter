@@ -119,7 +119,7 @@ SampleClient.prototype.init = function(context)
     self.projMat = mat4.create();
     var fov = 55;
     var aspect = (self.renderCtx.width/self.renderCtx.height);
-    mat4.perspective(fov, aspect, 0.1, 1000, self.projMat);
+    mat4.perspective(fov, aspect, 0.001, 1000, self.projMat);
 
 
     //mat4.ortho(0, self.renderCtx.width, 0, self.renderCtx.height, 1, 1000, self.projMat);
@@ -153,6 +153,7 @@ SampleClient.prototype.init = function(context)
 SampleClient.prototype.render = function(timing)
 {
     var self = client;
+    $('#FPS')[0].innerHTML = "FPS: " + timing.framesPerSecond;
 
     self.renderCtx.clearRect(0, 0, self.renderCtx.width, self.renderCtx.height);
     self.renderCtx.fillStyle = 'pink';

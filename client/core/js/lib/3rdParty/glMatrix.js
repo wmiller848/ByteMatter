@@ -1291,6 +1291,192 @@ mat4.toInverseMat3 = function (mat, dest) {
     return dest;
 };
 
+function MAT(r,c) {return c*4+r;}
+function SWAP_ROWS(a, b) { var _tmp = a; a = b; b =_tmp; }
+
+//This code comes directly from GLU except that it is for js
+mat4.toInverseMat4 = function(m, out)
+{
+    var wtmp = [new Array(8), new Array(8), new Array(8), new Array(8)];// [4][8];
+    var m0, m1, m2, m3, s;
+    var r0, r1, r2 = [], r3 = [];
+    r0 = wtmp[0], r1 = wtmp[1], r2 = wtmp[2], r3 = wtmp[3];
+    /*
+     r0[0] = MAT(m, 0, 0), r0[1] = MAT(m, 0, 1),
+     r0[2] = MAT(m, 0, 2), r0[3] = MAT(m, 0, 3),
+     r0[4] = 1.0, r0[5] = r0[6] = r0[7] = 0.0,
+     r1[0] = MAT(m, 1, 0), r1[1] = MAT(m, 1, 1),
+     r1[2] = MAT(m, 1, 2), r1[3] = MAT(m, 1, 3),
+     r1[5] = 1.0, r1[4] = r1[6] = r1[7] = 0.0,
+     r2[0] = MAT(m, 2, 0), r2[1] = MAT(m, 2, 1),
+     r2[2] = MAT(m, 2, 2), r2[3] = MAT(m, 2, 3),
+     r2[6] = 1.0, r2[4] = r2[5] = r2[7] = 0.0,
+     r3[0] = MAT(m, 3, 0), r3[1] = MAT(m, 3, 1),
+     r3[2] = MAT(m, 3, 2), r3[3] = MAT(m, 3, 3),
+     r3[7] = 1.0, r3[4] = r3[5] = r3[6] = 0.0;
+     */
+    r0[0] = m[MAT(0, 0)], r0[1] = m[MAT(0, 1)],
+        r0[2] = m[MAT(0, 2)], r0[3] = m[MAT(0, 3)],
+        r0[4] = 1.0, r0[5] = r0[6] = r0[7] = 0.0,
+        r1[0] = m[MAT(1, 0)], r1[1] = m[MAT(1, 1)],
+        r1[2] = m[MAT(1, 2)], r1[3] = m[MAT(1, 3)],
+        r1[5] = 1.0, r1[4] = r1[6] = r1[7] = 0.0,
+        r2[0] = m[MAT(2, 0)], r2[1] = m[MAT(2, 1)],
+        r2[2] = m[MAT(2, 2)], r2[3] = m[MAT(2, 3)],
+        r2[6] = 1.0, r2[4] = r2[5] = r2[7] = 0.0,
+        r3[0] = m[MAT(3, 0)], r3[1] = m[MAT(3, 1)],
+        r3[2] = m[MAT(3, 2)], r3[3] = m[MAT(3, 3)],
+        r3[7] = 1.0, r3[4] = r3[5] = r3[6] = 0.0;
+
+    /* choose pivot - or die */
+    if (Math.abs(r3[0]) > Math.abs(r2[0]))
+        SWAP_ROWS(r3, r2);
+    if (Math.abs(r2[0]) > Math.abs(r1[0]))
+        SWAP_ROWS(r2, r1);
+    if (Math.abs(r1[0]) > Math.abs(r0[0]))
+        SWAP_ROWS(r1, r0);
+    if (0.0 == r0[0])
+        return 0;
+
+    /* eliminate first variable     */
+    m1 = r1[0] / r0[0];
+    m2 = r2[0] / r0[0];
+    m3 = r3[0] / r0[0];
+    s = r0[1];
+    r1[1] -= m1 * s;
+    r2[1] -= m2 * s;
+    r3[1] -= m3 * s;
+    s = r0[2];
+    r1[2] -= m1 * s;
+    r2[2] -= m2 * s;
+    r3[2] -= m3 * s;
+    s = r0[3];
+    r1[3] -= m1 * s;
+    r2[3] -= m2 * s;
+    r3[3] -= m3 * s;
+    s = r0[4];
+    if (s != 0.0) {
+        r1[4] -= m1 * s;
+        r2[4] -= m2 * s;
+        r3[4] -= m3 * s;
+    }
+    s = r0[5];
+    if (s != 0.0) {
+        r1[5] -= m1 * s;
+        r2[5] -= m2 * s;
+        r3[5] -= m3 * s;
+    }
+    s = r0[6];
+    if (s != 0.0) {
+        r1[6] -= m1 * s;
+        r2[6] -= m2 * s;
+        r3[6] -= m3 * s;
+    }
+    s = r0[7];
+    if (s != 0.0) {
+        r1[7] -= m1 * s;
+        r2[7] -= m2 * s;
+        r3[7] -= m3 * s;
+    }
+    /* choose pivot - or die */
+    if (Math.abs(r3[1]) > Math.abs(r2[1]))
+        SWAP_ROWS(r3, r2);
+    if (Math.abs(r2[1]) > Math.abs(r1[1]))
+        SWAP_ROWS(r2, r1);
+    if (0.0 == r1[1])
+        return 0;
+
+    /* eliminate second variable */
+    m2 = r2[1] / r1[1];
+    m3 = r3[1] / r1[1];
+    r2[2] -= m2 * r1[2];
+    r3[2] -= m3 * r1[2];
+    r2[3] -= m2 * r1[3];
+    r3[3] -= m3 * r1[3];
+    s = r1[4];
+    if (0.0 != s) {
+        r2[4] -= m2 * s;
+        r3[4] -= m3 * s;
+    }
+    s = r1[5];
+    if (0.0 != s) {
+        r2[5] -= m2 * s;
+        r3[5] -= m3 * s;
+    }
+    s = r1[6];
+    if (0.0 != s) {
+        r2[6] -= m2 * s;
+        r3[6] -= m3 * s;
+    }
+    s = r1[7];
+    if (0.0 != s) {
+        r2[7] -= m2 * s;
+        r3[7] -= m3 * s;
+    }
+    /* choose pivot - or die */
+    if (Math.abs(r3[2]) > Math.abs(r2[2]))
+        SWAP_ROWS(r3, r2);
+    if (0.0 == r2[2])
+        return 0;
+
+    /* eliminate third variable */
+    m3 = r3[2] / r2[2];
+    r3[3] -= m3 * r2[3], r3[4] -= m3 * r2[4],
+        r3[5] -= m3 * r2[5], r3[6] -= m3 * r2[6], r3[7] -= m3 * r2[7];
+    /* last check */
+    if (0.0 == r3[3])
+        return 0;
+
+    s = 1.0 / r3[3];             /* now back substitute row 3 */
+    r3[4] *= s;
+    r3[5] *= s;
+    r3[6] *= s;
+    r3[7] *= s;
+    m2 = r2[3];                  /* now back substitute row 2 */
+    s = 1.0 / r2[2];
+    r2[4] = s * (r2[4] - r3[4] * m2), r2[5] = s * (r2[5] - r3[5] * m2),
+        r2[6] = s * (r2[6] - r3[6] * m2), r2[7] = s * (r2[7] - r3[7] * m2);
+    m1 = r1[3];
+    r1[4] -= r3[4] * m1, r1[5] -= r3[5] * m1,
+        r1[6] -= r3[6] * m1, r1[7] -= r3[7] * m1;
+    m0 = r0[3];
+    r0[4] -= r3[4] * m0, r0[5] -= r3[5] * m0,
+        r0[6] -= r3[6] * m0, r0[7] -= r3[7] * m0;
+    m1 = r1[2];                  /* now back substitute row 1 */
+    s = 1.0 / r1[1];
+    r1[4] = s * (r1[4] - r2[4] * m1), r1[5] = s * (r1[5] - r2[5] * m1),
+        r1[6] = s * (r1[6] - r2[6] * m1), r1[7] = s * (r1[7] - r2[7] * m1);
+    m0 = r0[2];
+    r0[4] -= r2[4] * m0, r0[5] -= r2[5] * m0,
+        r0[6] -= r2[6] * m0, r0[7] -= r2[7] * m0;
+    m0 = r0[1];                  /* now back substitute row 0 */
+    s = 1.0 / r0[0];
+    r0[4] = s * (r0[4] - r1[4] * m0), r0[5] = s * (r0[5] - r1[5] * m0),
+        r0[6] = s * (r0[6] - r1[6] * m0), r0[7] = s * (r0[7] - r1[7] * m0);
+
+    /*
+     MAT(out, 0, 0) = r0[4];
+     MAT(out, 0, 1) = r0[5], MAT(out, 0, 2) = r0[6];
+     MAT(out, 0, 3) = r0[7], MAT(out, 1, 0) = r1[4];
+     MAT(out, 1, 1) = r1[5], MAT(out, 1, 2) = r1[6];
+     MAT(out, 1, 3) = r1[7], MAT(out, 2, 0) = r2[4];
+     MAT(out, 2, 1) = r2[5], MAT(out, 2, 2) = r2[6];
+     MAT(out, 2, 3) = r2[7], MAT(out, 3, 0) = r3[4];
+     MAT(out, 3, 1) = r3[5], MAT(out, 3, 2) = r3[6];
+     MAT(out, 3, 3) = r3[7];
+     */
+    out[MAT(0, 0)] = r0[4];
+    out[MAT(0, 1)] = r0[5], out[MAT(0, 2)] = r0[6];
+    out[MAT(0, 3)] = r0[7], out[MAT(1, 0)] = r1[4];
+    out[MAT(1, 1)] = r1[5], out[MAT(1, 2)] = r1[6];
+    out[MAT(1, 3)] = r1[7], out[MAT(2, 0)] = r2[4];
+    out[MAT(2, 1)] = r2[5], out[MAT(2, 2)] = r2[6];
+    out[MAT(2, 3)] = r2[7], out[MAT(3, 0)] = r3[4];
+    out[MAT(3, 1)] = r3[5], out[MAT(3, 2)] = r3[6];
+    out[MAT(3, 3)] = r3[7];
+    return 1;
+}
+
 /*
  * mat4.multiply
  * Performs a matrix multiplication
@@ -1389,18 +1575,19 @@ mat4.multiplyVec4 = function (mat, vec, dest) {
 
 /*
  * mat4.project
- * Projects a vec3 with the given matrix
+ * Projects a vec3 with the given matrix, based on opengl's perspective vec3 projection
  *
  * Params:
  * modelview - mat4 to transform the vector with
  * projection - mat4 to project with
- * vec - vec3 to transform
- * dest - Optional, vec3 receiving operation result. If not specified result is written to vec
+ * viewport - viewport to size to
+ * windowCoordinate - vec2 to place screen coords
+ * vec - vec3 to project
  *
  * Returns:
  * dest if specified, vec otherwise
  */
-mat4.project = function(modelview, projection, viewport, windowCoordinate, vec)
+mat4.project = function(vec, modelview, projection, viewport, windowCoordinate)
 {
     //Transformation vectors
     var x = vec[0], y = vec[1], z = vec[2];
@@ -1433,6 +1620,37 @@ mat4.project = function(modelview, projection, viewport, windowCoordinate, vec)
     //This is only correct when glDepthRange(0.0, 1.0)
     windowCoordinate[2]=(1.0+fTempo[6])*0.5;  //Between 0 and 1
 
+    return 1;
+}
+
+mat4.unproject = function(winx, winy, winz, modelview, projection, viewport, objectCoordinate)
+{
+    //Transformation matrices
+    var m = new Array(16), A = new Array(16);
+    var inv = vec4.create(), out = vec4.create();
+    //Calculation for inverting a matrix, compute projection x modelview
+    //and store in A[16]
+    //MultiplyMatrices4by4OpenGL_FLOAT(A, projection, modelview);
+    mat4.multiply(projection, modelview, A);
+    //Now compute the inverse of matrix A
+    if(mat4.toInverseMat4(A, m) == 0)
+        return 0;
+
+    //Transformation of normalized coordinates between -1 and 1
+    inv[0]=(winx-viewport[0])/viewport[2]*2.0-1.0;
+    inv[1]=(winy-viewport[1])/viewport[3]*2.0-1.0;
+    inv[2]=2.0*winz-1.0;
+    inv[3]=1.0;
+    //Objects coordinates
+    //MultiplyMatrixByVector4by4OpenGL_FLOAT(out, m, inv);
+    mat4.multiplyVec4(m, inv, out)
+    if(out[3]==0.0)
+        return 0;
+
+    out[3]=1.0/out[3];
+    objectCoordinate[0]=out[0]*out[3];
+    objectCoordinate[1]=out[1]*out[3];
+    objectCoordinate[2]=out[2]*out[3];
     return 1;
 }
 
